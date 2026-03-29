@@ -1,100 +1,88 @@
 const fs = require("fs-extra");
 const axios = require("axios");
+const path = require("path");
 
 module.exports.config = {
   name: "antiProtect",
-  version: "4.0.0",
-  credits: "Chander Pahar x Gemini",
-  description: "গ্রুপের নাম এবং ছবি প্রটেক্ট করা + বেয়াদব মেম্বার কিক দেওয়া",
+  version: "5.0.0",
+  credits: "Belal x Gemini",
+  description: "গ্রুপের নাম ও ছবি প্রটেকশন + বেয়াদব মেম্বার কিক (Ultra Premium)",
   eventType: ["log:thread-name", "log:thread-icon"],
   cooldowns: 3
 };
 
-module.exports.run = async function ({ api, event, Users }) {
+module.exports.run = async function ({ api, event, Users, Threads }) {
   try {
-    const { threadID, author } = event;
+    const { threadID, author, logMessageType } = event;
     const senderID = author || event.senderID;
     const botID = api.getCurrentUserID();
-    const ownerID = "100056725134303"; // আপনার আইডি
-    const sig = "\n┄┉❈✡️⋆⃝চাঁদেড়~পাহাড়✿⃝🪬❈┉┄";
+    
+    // 👑 আপনার নতুন ওনার আইডি ও লিঙ্ক
+    const ownerID = "61577502464880"; 
+    const myFB = "https://www.facebook.com/profile.php?id=61577502464880";
+    const sig = "\n┈───╼ ┄┉❈✡️⋆⃝চৃাঁদেৃঁরৃঁ পাৃঁহা্ঁড়ৃঁ✿⃝🪬 ╾───┈";
 
-    const dir = `${__dirname}/../../cache/antiProtect/`;
+    const dir = path.join(__dirname, "..", "..", "cache", "antiProtect");
     if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
 
-    const dataFile = dir + `${threadID}.json`;
+    const dataFile = path.join(dir, `${threadID}.json`);
 
     const threadInfo = await api.getThreadInfo(threadID);
     const adminIDs = (threadInfo.adminIDs || []).map(i => i.id);
     const isAdmin = adminIDs.includes(senderID);
     const botAdmin = adminIDs.includes(botID);
 
-    // বট অ্যাডমিন না হলে কোনো কাজ করবে না
     if (!botAdmin) return;
 
-    // ডাটা ফাইল না থাকলে গ্রুপের বর্তমান অবস্থা সেভ করবে
+    // ব্যাকআপ ডাটা চেক
     if (!fs.existsSync(dataFile)) {
-      const snap = {
-        name: threadInfo.threadName || "",
-        image: threadInfo.imageSrc || null
-      };
+      const snap = { name: threadInfo.threadName || "", image: threadInfo.imageSrc || null };
       fs.writeFileSync(dataFile, JSON.stringify(snap, null, 2));
       return;
     }
 
-    const old = JSON.parse(fs.readFileSync(dataFile));
+    const oldData = JSON.parse(fs.readFileSync(dataFile));
 
-    // যদি অ্যাডমিন বা বট বা ওনার নিজে পরিবর্তন করে, তবে নতুন তথ্য সেভ হবে
+    // ওনার বা অ্যাডমিন করলে পারমিশন এলাউ
     if (isAdmin || senderID == botID || senderID == ownerID) {
-      const snap = {
-        name: threadInfo.threadName,
-        image: threadInfo.imageSrc
-      };
+      const snap = { name: threadInfo.threadName, image: threadInfo.imageSrc };
       fs.writeFileSync(dataFile, JSON.stringify(snap, null, 2));
       return;
     }
 
-    // সাধারণ মেম্বার পরিবর্তন করলে এই লজিক কাজ করবে
     const name = await Users.getNameUser(senderID);
+    const header = "╭┈──────────── 🛡️ ────────────┈╮";
+    const footer = "╰┈──────────── ⚡ ────────────┈╯";
 
-    switch (event.logMessageType) {
-
-      case "log:thread-name": {
-        await api.setTitle(old.name, threadID);
-        // বেয়াদব মেম্বারকে কিক দেওয়ার লজিক
-        await api.removeUserFromGroup(senderID, threadID);
-        
-        const msg = `┏━━━━━━━ 🚫 ━━━━━━━┓\n   🔥 𝗡𝗔𝗠𝗘 𝗣𝗥𝗢𝗧𝗘𝗖𝗧𝗘𝗗 🔥\n┗━━━━━━━ 👞 ━━━━━━━┛\n\n⚠️ কিরে [ ${name} ]! \n\nতোর এতো বড় সাহস যে তুই গ্রুপের নাম চেঞ্জ করিস? 😂 তুই কি জানিস না এই গ্রুপে 'চাঁদের পাহাড়'-এর প্রটেকশন দেওয়া আছে? \n\n🚫 গ্রুপের নাম আবার আগের মতো করে দেওয়া হলো।\n👞 আর তোকে এই ধৃষ্টতার জন্য লাথি মেরে গ্রুপ থেকে বের করে দেওয়া হলো! ভাগ আবাল! 🐸${sig}`;
-        
-        api.sendMessage(msg, threadID);
-        
-        // ওনারকে রিপোর্ট পাঠানো
-        api.sendMessage(`🚨 𝗔𝗻𝘁𝗶-𝗣𝗿𝗼𝘁𝗲𝗰𝘁 𝗔𝗹𝗲𝗿𝘁!\n━━━━━━━━━━━━━━━━━\n🏰 গ্রুপ: ${threadInfo.threadName}\n👤 ইউজার: ${name}\n📝 অপরাধ: গ্রুপের নাম পরিবর্তনের চেষ্টা।\n❌ অ্যাকশন: কিক দেওয়া হয়েছে।`, ownerID);
-        break;
-      }
-
-      case "log:thread-icon": {
-        try {
-          if (old.image) {
-            const res = await axios.get(old.image, { responseType: "arraybuffer" });
-            const buf = Buffer.from(res.data, "binary");
-            await api.changeGroupImage(fs.createReadStream(buf), threadID);
-          }
-        } catch {}
-
-        // বেয়াদব মেম্বারকে কিক দেওয়ার লজিক
-        await api.removeUserFromGroup(senderID, threadID);
-
-        const msg = `┏━━━━━━━ 🚫 ━━━━━━━┓\n   📸 𝗜𝗖𝗢𝗡 𝗣𝗥𝗢𝗧𝗘𝗖𝗧𝗘𝗗 📸\n┗━━━━━━━ 👞 ━━━━━━━┛\n\n⚠️ কিরে [ ${name} ]! \n\nতোর মুখ কি এতোই সুন্দর যে তুই গ্রুপের পিকচার পাল্টাইতে আসছস? 😂 বেশি পাকনামি করার ফল হাতেনাতে পেলি। \n\n✅ গ্রুপের পুরানো ছবি আবার সেট করা হয়েছে।\n👞 আর তোকে গ্রুপ থেকে নর্দমায় লাথি মারা হলো! ড্রেনে গিয়ে গোসল কর গে যা! 🐸${sig}`;
-
-        api.sendMessage(msg, threadID);
-
-        // ওনারকে রিপোর্ট পাঠানো
-        api.sendMessage(`🚨 𝗔𝗻𝘁𝗶-𝗣𝗿𝗼𝘁𝗲𝗰𝘁 𝗔𝗹𝗲𝗿𝘁!\n━━━━━━━━━━━━━━━━━\n🏰 গ্রুপ: ${threadInfo.threadName}\n👤 ইউজার: ${name}\n📝 অপরাধ: গ্রুপের ছবি পরিবর্তনের চেষ্টা।\n❌ অ্যাকশন: কিক দেওয়া হয়েছে।`, ownerID);
-        break;
-      }
-    }
-  } catch (e) {
-    console.log("antiProtect Error:", e);
-  }
-};
+    if (logMessageType === "log:thread-name") {
+      await api.setTitle(oldData.name, threadID);
+      await api.removeUserFromGroup(senderID, threadID);
       
+      const kickMsg = `${header}\n      🔥 𝗡𝗔𝗠𝗘 𝗣𝗥𝗢𝗧𝗘𝗖𝗧𝗘𝗗 🔥\n${footer}\n\n⚠️ কিরে [ ${name} ]! তোর এতো বড় সাহস যে তুই গ্রুপের নাম চেঞ্জ করিস? 😂 \n\n🚫 প্রটেকশন অন থাকায় নাম আবার আগের মতো করে দেওয়া হলো।\n👞 আর তোকে এই ধৃষ্টতার জন্য লাথি মেরে গ্রুপ থেকে বের করা হলো! ড্রেনে গিয়ে গোসল কর গে যা! 🐸${sig}`;
+      api.sendMessage(kickMsg, threadID);
+
+      // ওনারকে সিকিউরিটি রিপোর্ট পাঠানো
+      const report = `╭┈─────── 🚨 𝗦𝗘𝗖𝗨𝗥𝗜𝗧𝗬 𝗔𝗟𝗘𝗥𝗧 ───────┈╮\n🏰 Group: ${threadInfo.threadName}\n👤 User: ${name}\n📝 Crime: গ্রুপের নাম পরিবর্তনের চেষ্টা\n❌ Action: Kick Out ✅\n\n👑 Owner: BELAL\n🌐 FB ID: ${myFB}`;
+      api.sendMessage(report, ownerID);
+    }
+
+    if (logMessageType === "log:thread-icon") {
+      try {
+        if (oldData.image) {
+          const res = await axios.get(oldData.image, { responseType: "stream" });
+          await api.changeGroupImage(res.data, threadID);
+        }
+      } catch (err) {}
+
+      await api.removeUserFromGroup(senderID, threadID);
+
+      const kickMsg = `${header}\n      📸 𝗜𝗖𝗢𝗡 𝗣𝗥𝗢𝗧𝗘𝗖𝗧𝗘𝗗 📸\n${footer}\n\n⚠️ কিরে [ ${name} ]! তোর মুখ কি এতোই সুন্দর যে তুই গ্রুপের পিকচার পাল্টাইতে আসছস? 😂 \n\n✅ রাজপ্রাসাদের ছবি আবার আগের মতো সেট করা হয়েছে।\n👞 আর তোকে গ্রুপ থেকে নর্দমায় লাথি মারা হলো! ভাগ আবাল! 🐸${sig}`;
+      api.sendMessage(kickMsg, threadID);
+
+      const report = `╭┈─────── 🚨 𝗦𝗘𝗖𝗨𝗥𝗜𝗧𝗬 𝗔𝗟𝗘𝗥𝗧 ───────┈╮\n🏰 Group: ${threadInfo.threadName}\n👤 User: ${name}\n📝 Crime: গ্রুপের ছবি পরিবর্তনের চেষ্টা\n❌ Action: Kick Out ✅\n\n👑 Owner: BELAL\n🌐 FB ID: ${myFB}`;
+      api.sendMessage(report, ownerID);
+    }
+
+  } catch (e) { console.error(e); }
+};
+        
