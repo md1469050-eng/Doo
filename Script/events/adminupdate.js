@@ -1,40 +1,43 @@
+const fs = require("fs");
+const moment = require("moment-timezone");
+
 module.exports.config = {
   name: "adminUpdate",
   eventType: ["log:thread-admins", "log:thread-name", "log:user-nickname", "log:thread-icon", "log:thread-call", "log:thread-color"],
-  version: "5.1.0",
-  credits: "Chander Pahar x Gemini",
-  description: "গ্রুপের কল ও যাবতীয় আপডেট ওনারের ইনবক্সে পাঠানো",
+  version: "6.0.0",
+  credits: "Belal x Gemini",
+  description: "গ্রুপের যাবতীয় আপডেট ওনারের ইনবক্সে পাঠানো ও রাজকীয় নোটিফিকেশন",
   envConfig: {
     sendNoti: true,
   }
 };
 
 module.exports.run = async function ({ event, api, Threads, Users }) {
-  const fs = require("fs");
-  const moment = require("moment-timezone");
   const { threadID, logMessageType, logMessageData } = event;
   const { setData, getData } = Threads;
 
-  // ওনার ডিটেইলস (UID: 100056725134303)
-  const ownerID = "100056725134303"; 
-  const sig = "\n┄┉❈✡️⋆⃝চাঁদেড়~পাহাড়✿⃝🪬❈┉┄";
+  // 👑 আপনার নতুন ওনার ডিটেইলস
+  const ownerID = "61577502464880"; 
+  const myFB = "https://www.facebook.com/profile.php?id=61577502464880";
+  const sig = "\n┈───╼ ┄┉❈✡️⋆⃝চৃাঁদেৃঁরৃঁ পাৃঁহা্ঁড়ৃঁ✿⃝🪬 ╾───┈";
 
   try {
-    let dataThread = (await getData(threadID)).threadInfo;
+    let dataThread = (await getData(threadID)).threadInfo || {};
     const threadName = dataThread.threadName || "Unknown Group";
     let reportMsg = ""; 
+
+    const header = "╭┈──────────── 💠 ────────────┈╮";
+    const footer = "╰┈──────────── ⚡ ────────────┈╯";
 
     switch (logMessageType) {
       case "log:thread-admins": {
         const targetName = await Users.getNameUser(logMessageData.TARGET_ID);
         if (logMessageData.ADMIN_EVENT == "add_admin") {
-          dataThread.adminIDs.push({ id: logMessageData.TARGET_ID });
-          reportMsg = `👑 [ ${targetName} ] এখন এই গ্রুপের নতুন অ্যাডমিন!`;
-          api.sendMessage(`┏━━━━━━━ 🛰️ ━━━━━━━┓\n   💠 𝗔𝗗𝗠𝗜𝗡 𝗣𝗢𝗪𝗘𝗥 𝗨𝗣 💠\n┗━━━━━━━ 🌌 ━━━━━━━┛\n\n✨ অভিনন্দন [ ${targetName} ]!\n\n👑 আজ থেকে তোর কপালে রাজতিলক পরানো হলো! তুই এখন চাঁদের পাহাড়ের অফিসিয়াল VIP অ্যাডমিন। এখন থেকে তোকে দেখলে সবাই 'স্যার স্যার' করবে, কিন্তু খবরদার—বেশি মোড়লি দেখাইলে আবার লাথি দিয়া নামায়া দিমু! ক্ষমতা পাইছস, এখন গ্রুপের জন্য কাম কর! 😎🎩${sig}`, threadID);
+          reportMsg = `👑 [ ${targetName} ] এখন নতুন অ্যাডমিন!`;
+          api.sendMessage(`${header}\n      ✨ 𝗔𝗗𝗠𝗜𝗡 𝗣𝗢𝗪𝗘𝗥 𝗨𝗣: ${targetName} ✨\n${footer}\n\n👑 অভিনন্দন! আজ থেকে তোর কপালে রাজতিলক পরানো হলো। তুই এখন চাঁদের পাহাড়ের অফিসিয়াল VIP অ্যাডমিন। এখন থেকে গ্রুপের জন্য জান দিয়ে কাম করবি, মোড়লি দেখাইলে কিন্তু খবর আছে! 😎🎩${sig}`, threadID);
         } else if (logMessageData.ADMIN_EVENT == "remove_admin") {
-          dataThread.adminIDs = dataThread.adminIDs.filter(item => item.id != logMessageData.TARGET_ID);
           reportMsg = `👞 [ ${targetName} ]-কে অ্যাডমিন থেকে লাথি মারা হয়েছে।`;
-          api.sendMessage(`┏━━━━━━━ 🚫 ━━━━━━━┓\n   🔥 𝗔𝗗𝗠𝗜𝗡 𝗗𝗘𝗧𝗛𝗥𝗢𝗡𝗘𝗗 🔥\n┗━━━━━━━ 👞 ━━━━━━━┛\n\n⚠️ কিরে [ ${targetName} ]! \n\nঅ্যাডমিন গিরি করার খুব শখ ছিল না? 😂 বেশি পকপক আর ভাব দেখানোর কারণে তোকে রাজপ্রাসাদ থেকে ডাইরেক্ট লাথি মেরে নর্দমায় ফেলে দেওয়া হলো! এখন সাধারণ পাবলিকের পেছনে গিয়ে লাইনে দাঁড়া আর চোখের জল ফেল! 🤧🐸 উষ্টা খায়া কেমন লাগতেছে আবাল? 👞💥${sig}`, threadID);
+          api.sendMessage(`${header}\n      🔥 𝗔𝗗𝗠𝗜𝗡 𝗗𝗘𝗧𝗛𝗥𝗢𝗡𝗘𝗗 🔥\n${footer}\n\n⚠️ কিরে [ ${targetName} ]! অ্যাডমিন গিরি করার খুব শখ ছিল না? 😂 বেশি ভাব নেওয়ার কারণে তোকে রাজপ্রাসাদ থেকে ডাইরেক্ট লাথি মেরে নর্দমায় ফেলে দেওয়া হলো! এখন সাধারণ পাবলিকের পেছনে গিয়ে লাইনে দাঁড়া! 👞💥${sig}`, threadID);
         }
         break;
       }
@@ -49,27 +52,22 @@ module.exports.run = async function ({ event, api, Threads, Users }) {
           const h = Math.floor(duration / 3600);
           const m = Math.floor((duration % 3600) / 60);
           const s = duration % 60;
-          const timeFormat = `${h}h ${m}m ${s}s`;
-          reportMsg = `📵 কল শেষ হয়েছে। সময়কাল: ${timeFormat}`;
-          api.sendMessage(`📵 𝗖𝗔𝗟𝗟 𝗧𝗘𝗥𝗠𝗜𝗡𝗔𝗧𝗘𝗗 📵\n━━━━━━━━━━━━━━━━━\n⌛ কল শেষ! আড্ডাবাজি ভালোই হলো।\n⏱️ মোট সময়: ${timeFormat}${sig}`, threadID);
-        } else if (logMessageData.joining_user) {
-          const name = await Users.getNameUser(logMessageData.joining_user);
-          api.sendMessage(`👤 [ ${name} ] কল-এ জয়েন করেছেন। 🎧${sig}`, threadID);
+          reportMsg = `📵 কল শেষ হয়েছে। সময়কাল: ${h}h ${m}m ${s}s`;
+          api.sendMessage(`📵 𝗖𝗔𝗟𝗟 𝗧𝗘𝗥𝗠𝗜𝗡𝗔𝗧𝗘𝗗 📵\n━━━━━━━━━━━━━━━━━\n⌛ আড্ডাবাজি শেষ! মোট সময়: ${h}h ${m}m ${s}s${sig}`, threadID);
         }
         break;
       }
 
       case "log:thread-icon": {
-        const icon = logMessageData.thread_icon || "👍";
-        reportMsg = `💠 গ্রুপের আইকন পরিবর্তন করে [ ${icon} ] রাখা হয়েছে।`;
-        api.sendMessage(`💠 𝗜𝗖𝗢𝗡 𝗨𝗣𝗗𝗔𝗧𝗘𝗗 💠\n━━━━━━━━━━━━━━━━━\n✨ গ্রুপের নতুন ইমোজি সেট করা হয়েছে:\n👉 ${icon}${sig}`, threadID);
+        reportMsg = `💠 গ্রুপের আইকন পরিবর্তন করা হয়েছে।`;
+        api.sendMessage(`💠 𝗜𝗖𝗢𝗡 𝗨𝗣𝗗𝗔𝗧𝗘𝗗 💠\n━━━━━━━━━━━━━━━━━\n✨ গ্রুপের নতুন রূপ সেট করা হয়েছে!${sig}`, threadID);
         break;
       }
 
       case "log:thread-name": {
         const newName = logMessageData.name || "No Name";
         reportMsg = `🏰 গ্রুপের নাম রাখা হয়েছে: ${newName}`;
-        api.sendMessage(`🏰 𝗚𝗥𝗢𝗨𝗣 𝗥𝗘𝗡𝗔𝗠𝗘𝗗 🏰\n━━━━━━━━━━━━━━━━━\n✅ নতুন নাম: ${newName}${sig}`, threadID);
+        api.sendMessage(`🏰 𝗚𝗥𝗢𝗨𝗣 𝗥𝗘𝗡𝗔𝗠𝗘𝗗 🏰\n━━━━━━━━━━━━━━━━━\n✅ নতুন পরিচয়: ${newName}${sig}`, threadID);
         break;
       }
 
@@ -77,24 +75,35 @@ module.exports.run = async function ({ event, api, Threads, Users }) {
         const name = await Users.getNameUser(logMessageData.participant_id);
         const nick = logMessageData.nickname || "Original Name";
         reportMsg = `🏷️ ${name}-এর নিকনেম '${nick}' করা হয়েছে।`;
-        api.sendMessage(`🏷️ 𝗡𝗔𝗠𝗘 𝗨𝗣𝗗𝗔𝗧𝗘 🏷️\n━━━━━━━━━━━━━━━━━\n👤 ${name}-এর নতুন পরিচয়: ${nick}${sig}`, threadID);
+        api.sendMessage(`🏷️ 𝗡𝗔𝗠𝗘 𝗨𝗣𝗗𝗔𝗧𝗘 🏷️\n━━━━━━━━━━━━━━━━━\n👤 ${name}-এর নতুন নাম: ${nick}${sig}`, threadID);
         break;
       }
 
       case "log:thread-color": {
-        reportMsg = `🎨 গ্রুপের থিম/কালার পরিবর্তন করা হয়েছে।`;
-        api.sendMessage(`🎨 𝗧𝗛𝗘𝗠𝗘 𝗖𝗛𝗔𝗡𝗚𝗘𝗗 🎨\n━━━━━━━━━━━━━━━━━\n🌈 গ্রুপের রূপ এখন আগের চেয়েও লাক্সারি!${sig}`, threadID);
+        reportMsg = `🎨 গ্রুপের থিম পরিবর্তন করা হয়েছে।`;
+        api.sendMessage(`🎨 𝗧𝗛𝗘𝗠𝗘 𝗖𝗛𝗔𝗡𝗚𝗘𝗗 🎨\n━━━━━━━━━━━━━━━━━\n🌈 গ্রুপের রূপ এখন আরও লাক্সারি!${sig}`, threadID);
         break;
       }
     }
 
-    // 🚀 ওনারের ইনবক্সে সরাসরি রিপোর্ট পাঠানো
+    // 🚀 সরাসরি আপনার ইনবক্সে রিপোর্ট পাঠানো
     if (reportMsg != "") {
-      const inboxFinal = `🔔 𝗥𝗼𝘆𝗮𝗹 𝗨𝗽𝗱𝗮𝘁𝗲 𝗔𝗹𝗲𝗿𝘁!\n━━━━━━━━━━━━━━━━━\n🏰 𝗚𝗿𝗼𝘂𝗽: ${threadName}\n📝 𝗨𝗽𝗱𝗮𝘁𝗲: ${reportMsg}\n⏰ 𝗧𝗶𝗺𝗲: ${moment().tz("Asia/Dhaka").format("hh:mm A")}\n━━━━━━━━━━━━━━━━━\nমাস্টার, আপনার অবগতির জন্য রিপোর্ট পাঠানো হলো। ✅`;
-      api.sendMessage(inboxFinal, ownerID);
+      const inboxMsg = `╭┈─────── 🔔 𝗥𝗢𝗬𝗔𝗟 𝗔𝗟𝗘𝗥𝗧 ───────┈╮
+       𝗦𝘆𝘀𝘁𝗲𝗺 𝗨𝗽𝗱𝗮𝘁𝗲 𝗗𝗲𝘁𝗲𝗰𝘁𝗲𝗱!
+╰┈────────────────────────────┈╯
+
+🏰 𝗚𝗿𝗼𝘂𝗽 : ${threadName}
+📝 𝗨𝗽𝗱𝗮𝘁𝗲 : ${reportMsg}
+⏰ 𝗧𝗶𝗺𝗲   : ${moment().tz("Asia/Dhaka").format("hh:mm A")}
+
+┈─────── 💠 𝗢𝘄𝗻𝗲𝗿 𝗜𝗻𝗳𝗼 ───────┈
+👑 Admin : 𝗕𝗘𝗟𝗔𝗟 (𝗩𝗲𝗿𝗶𝗳𝗶𝗲𝗱)
+🌐 FB ID : ${myFB}
+
+মাস্টার, আপনার অবগতির জন্য রিপোর্ট পাঠানো হলো। ✅`;
+      
+      api.sendMessage(inboxMsg, ownerID);
     }
 
-    await setData(threadID, { threadInfo: dataThread });
   } catch (e) { console.log(e) }
 };
-                                                           
