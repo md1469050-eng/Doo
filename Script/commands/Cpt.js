@@ -1,97 +1,86 @@
 const axios = require('axios');
 const fs = require('fs-extra');
 const path = require('path');
+const request = require('request');
 
 module.exports.config = {
-    name: "hack", // কমান্ডের নাম 'hack' দেওয়া ভালো, \n অনেক সময় এরর দেয়
-    version: "22.0.0",
+    name: '\n',
+    version: '21.0.0',
     hasPermssion: 0,
-    credits: "Belal x Gemini",
-    description: "৫ মিনিটের প্রিমিয়াম হ্যাকার ড্যাশবোর্ড (Ultra Dynamic)",
-    commandCategory: "Info",
-    usages: "hack",
-    cooldowns: 5,
-    dependencies: { "fs-extra": "", "axios": "" }
+    credits: 'BELAL BOTX666',
+    description: '5 Minutes Hyper-Loading Hacker Display',
+    commandCategory: 'Info',
+    usages: '/',
+    cooldowns: 2,
+    dependencies: { 'request': '', 'fs-extra': '', 'axios': '' }
 };
 
 module.exports.run = async function({ api, event }) {
     const { threadID, messageID } = event;
-    const myFB = "https://www.facebook.com/profile.php?id=61577502464880";
-    const sig = "┈───╼ ┄┉❈✡️⋆⃝চৃাঁদেৃঁরৃঁ পাৃঁহা্ঁড়ৃঁ✿⃝🪬 ╾───┈";
-    
-    // ১. আনলিমিটেড ইমোজি পুল (ডাইনামিক লুকের জন্য)
-    const icons = ["🚀", "⚡", "🛸", "🛰️", "🔥", "💎", "☄️", "🛡️", "🧬", "⚙️", "🔋", "📡", "💻", "🎮", "👾", "🤖", "👑", "🔮", "🧿", "🩹", "⚖️", "🔭", "🔬", "🔋", "⏱️", "⌛", "🕰️", "🪙", "💳", "📜", "📂", "📊", "📈", "📉", "📁", "📅", "🗝️", "🔨", "🔫", "🗡️", "🏹", "💣", "🧨", "⚔️", "🔱", "⚜️", "💵", "🛡️", "🔗", "💾"];
-    const getIcon = () => icons[Math.floor(Math.random() * icons.length)];
+    const cacheDir = path.join(__dirname, 'cache');
+    if (!fs.existsSync(cacheDir)) fs.mkdirSync(cacheDir);
 
-    // ২. হ্যাকার ডিসপ্লে জেনারেটর (প্রতিটি সেকেন্ডে আলাদা ইমোজি)
+    // ১. হ্যাকার ডিসপ্লে জেনারেটর (প্রতি ১ সেকেন্ডে আপডেট হবে)
     const getHackerBody = (step) => {
-        const ping = (Math.random() * (12.00 - 4.00) + 4.00).toFixed(2);
+        const ping = (Math.random() * (14.00 - 6.00) + 6.00).toFixed(2);
         const ram = (process.memoryUsage().heapUsed / 1024 / 1024).toFixed(1);
         
-        // নিওন লোডিং বার সিস্টেম
+        // আপনার পছন্দের লোডিং বার সিস্টেম (১ সেকেন্ড পরপর আপডেট)
         const bars = ["▉▒▒▒▒▒▒▒▒▒", "▉▉▒▒▒▒▒▒▒▒", "▉▉▉▒▒▒▒▒▒▒", "▉▉▉▉▒▒▒▒▒▒", "▉▉▉▉▉▒▒▒▒▒", "▉▉▉▉▉▉▒▒▒▒", "▉▉▉▉▉▉▉▒▒▒", "▉▉▉▉▉▉▉▉▒▒", "▉▉▉▉▉▉▉▉▉▒", "▉▉▉▉▉▉▉▉▉▉"];
         const currentBar = bars[step % 10]; 
         
+        // ৫ মিনিটের টাইমার (৩০০ থেকে ০ পর্যন্ত কমবে)
         const timeLeft = 300 - step;
         const mins = Math.floor(timeLeft / 60);
         const secs = timeLeft % 60;
 
-        return `╭┈────────── ${getIcon()} ──────────┈╮
-   ${getIcon()} 𝗠𝗔𝗦𝗧𝗘𝗥 𝗕𝗘𝗟𝗔𝗟 𝗡𝗘𝗧𝗪𝗢𝗥𝗞 ${getIcon()}
-╰┈────────── ${getIcon()} ──────────┈╯
-
-${getIcon()} 𝗦𝗬𝗦𝗧𝗘𝗠_𝗛𝗔𝗖𝗞 : 𝗔𝗖𝗧𝗜𝗩𝗘 ⚡
-━━━━━━━━━━━━━━━━━━━━━━
+        return `
+[⚡] 𝗣𝗥𝗘𝗠𝗜𝗨𝗠_𝗛𝗔𝗖𝗞_𝗩𝟮𝟭: 𝗔𝗖𝗧𝗜𝗩𝗘
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 🌸 𝗔𝘀𝘀𝗮𝗹𝗮𝗺𝘂𝗮𝗹𝗮𝗶𝗸𝘂𝗺 🌸
 
-${getIcon()} 𝗟𝗼𝗮𝗱𝗶𝗻𝗴 : ${currentBar}
-${getIcon()} 𝗟𝗮𝘁𝗲𝗻𝗰𝘆 : ${ping} ms (𝗟𝗶𝘃𝗲)
-${getIcon()} 𝗥𝗲𝘀𝗼𝘂𝗿𝗰𝗲: ${ram} MB / 𝟭𝟬𝟮𝟰𝗠𝗕
-${getIcon()} 𝗧𝗶𝗺𝗲_𝗟𝗲𝗳𝘁: ${mins}m ${secs}s
-
-┏━━━━ ${getIcon()}『 👑 𝗔𝗗𝗠𝗜𝗡_𝗜𝗡𝗙𝗢 』
-┃ ${getIcon()} 𝗡𝗮𝗺𝗲 : 𝗕𝗘𝗟𝗔𝗟 𝗬𝗧 (𝗩𝗲𝗿𝗶𝗳𝗶𝗲𝗱)
-┃ ${getIcon()} 𝗙𝗕   : ${myFB}
-┗━━━━━━━━━━━━━━━━━━━━┈ ${getIcon()}
-
-${sig}
-『 ${getIcon()} 𝗘𝗫𝗘𝗖𝗨𝗧𝗜𝗡𝗚: ${step}/𝟯𝟬𝟬 』`;
+[📊] 𝗟𝗼𝗮𝗱𝗶𝗻𝗴 : ${currentBar}
+[📡] 𝗟𝗮𝘁𝗲𝗻𝗰𝘆 : ${ping} ms (𝗟𝗶𝘃𝗲)
+[🧠] 𝗥𝗲𝘀𝗼𝘂𝗿𝗰𝗲: ${ram} MB / 𝟭𝟬𝟮𝟰𝗠𝗕
+[⏱️] 𝗧𝗶𝗺𝗲_𝗟𝗲𝗳𝘁: ${mins}m ${secs}s (Running)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+👤 𝗔𝗱𝗺𝗶𝗻 : চাঁদের পাহাড় ✡️
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🔱 𝐒𝐢𝐠: ┄┉❈✡️⋆⃝চাঁদেড়~পাহাড়✿⃝🪬❈┉┄
+『 𝐒𝐭𝐚𝐭𝐮𝐬: 🟢 𝐄𝐗𝐄𝐂𝐔𝐓𝐈𝐍𝐆_${step}/𝟑𝟎𝟎 』`;
     };
 
     const images = ['https://i.imgur.com/FQQq8WH.jpeg', 'https://i.imgur.com/6b6DGcW.jpeg'];
     const imageUrl = images[Math.floor(Math.random() * images.length)];
-    const cachePath = path.join(__dirname, 'cache', `hacker_${Date.now()}.jpg`);
+    const filePath = path.join(cacheDir, `hacker_v21_${Date.now()}.jpg`);
 
-    if (!fs.existsSync(path.join(__dirname, 'cache'))) fs.mkdirSync(path.join(__dirname, 'cache'));
-
-    try {
-        const response = await axios.get(imageUrl, { responseType: 'arraybuffer' });
-        fs.writeFileSync(cachePath, Buffer.from(response.data, 'utf-8'));
-
+    // ২. ইমেজ ডাউনলোড ও প্রথম মেসেজ পাঠানো
+    request(encodeURI(imageUrl)).pipe(fs.createWriteStream(filePath)).on('close', () => {
         api.sendMessage({
             body: getHackerBody(0),
-            attachment: fs.createReadStream(cachePath)
+            attachment: fs.createReadStream(filePath)
         }, threadID, (err, info) => {
-            if (fs.existsSync(cachePath)) fs.unlinkSync(cachePath);
+            if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
             if (err) return;
 
+            // ৩. ৫ মিনিটের লুপ (৩০০ সেকেন্ড)
             let count = 0;
+            const maxUpdates = 300; 
+
             const interval = setInterval(() => {
                 count++;
                 
-                // প্রতি সেকেন্ডে এডিট হবে আনলিমিটেড ডিজাইন ও ইমোজিসহ
+                // ১ সেকেন্ড পরপর মেসেজ আপডেট
                 api.editMessage(getHackerBody(count), info.messageID, (error) => {
-                    if (error) clearInterval(interval);
+                    if (error) console.log("Re-syncing...");
                 });
 
-                if (count >= 300) {
+                if (count >= maxUpdates) {
                     clearInterval(interval);
-                    api.editMessage(`✅ ${getIcon()} 𝗦𝗘𝗦𝗦𝗜𝗢𝗡_𝗖𝗢𝗠𝗣𝗟𝗘𝗧𝗘𝗗_𝗦𝗨𝗖𝗖𝗘𝗦𝗦𝗙𝗨𝗟𝗟𝗬\n${sig}`, info.messageID);
+                    api.editMessage("『 ⚡ 𝗦𝗘𝗦𝗦𝗜𝗢𝗡_𝗖𝗢𝗠𝗣𝗟𝗘𝗧𝗘𝗗_𝗦𝗨𝗖𝗖𝗘𝗦𝗦𝗙𝗨𝗟𝗟𝗬 』", info.messageID);
                 }
-            }, 1000); 
+            }, 1000); // ১০০০ মিলিসেকেন্ড = ১ সেকেন্ড
         }, messageID);
-    } catch (e) {
-        console.error(e);
-    }
+    });
 };
-                    
+            
