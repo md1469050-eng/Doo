@@ -1,9 +1,12 @@
+const fs = require("fs-extra");
+const path = require("path");
+
 module.exports.config = {
   name: "joinnoti",
   eventType: ["log:subscribe"],
-  version: "3.0.0",
-  credits: "Chander Pahar x Gemini",
-  description: "চাঁদের পাহাড় আল্ট্রা-লাক্সারি ওয়েলকাম ডিজাইন",
+  version: "4.0.0",
+  credits: "Belal x Gemini",
+  description: "চাঁদের পাহাড় ফিউচারিস্টিক ওয়েলকাম ডিজাইন উইথ ক্লিকেবল আইডি",
   dependencies: {
     "fs-extra": "",
     "path": ""
@@ -11,123 +14,111 @@ module.exports.config = {
 };
 
 module.exports.onLoad = function () {
-  const { existsSync, mkdirSync } = global.nodemodule["fs-extra"];
-  const { join } = global.nodemodule["path"];
+  const { existsSync, mkdirSync } = fs;
   const paths = [
-    join(__dirname, "cache", "joinGif"),
-    join(__dirname, "cache", "randomgif")
+    path.join(__dirname, "cache", "joinGif"),
+    path.join(__dirname, "cache", "randomgif")
   ];
-  for (const path of paths) {
-    if (!existsSync(path)) mkdirSync(path, { recursive: true });
+  for (const p of paths) {
+    if (!existsSync(p)) mkdirSync(p, { recursive: true });
   }
 };
 
 module.exports.run = async function({ api, event }) {
-  const fs = require("fs");
-  const path = require("path");
   const { threadID } = event;
-  
   const botPrefix = global.config.PREFIX || "/";
-  const botName = "BELAL BOTX666"; 
+  const botName = "𝗕𝗘𝗟𝗔𝗟 𝗕𝗢𝗧-𝗫𝟲𝟲𝟲"; 
+  const myFB = "https://www.facebook.com/profile.php?id=61577502464880";
 
-  // যখন বট নিজে গ্রুপে অ্যাড হবে (বটের প্রবেশ)
+  // 🚀 ১. বটের নিজের রাজকীয় প্রবেশ (Bot Entry)
   if (event.logMessageData.addedParticipants.some(i => i.userFbId == api.getCurrentUserID())) {
     await api.changeNickname(`[ ${botPrefix} ] • ${botName}`, threadID, api.getCurrentUserID());
 
-    api.sendMessage(`🚀 𝗦𝘆𝘀𝘁𝗲𝗺 𝗔𝗰𝘁𝗶𝘃𝗮𝘁𝗲𝗱: ${botName} এখন আপনাদের সেবায় নিয়োজিত..!`, threadID, () => {
-      const randomGifPath = path.join(__dirname, "cache", "randomgif");
-      const allFiles = fs.readdirSync(randomGifPath).filter(file =>
-        [".mp4", ".jpg", ".png", ".jpeg", ".gif", ".mp3"].some(ext => file.endsWith(ext))
-      );
+    const randomGifPath = path.join(__dirname, "cache", "randomgif");
+    const allFiles = fs.readdirSync(randomGifPath).filter(file =>
+      [".mp4", ".jpg", ".png", ".jpeg", ".gif", ".mp3"].some(ext => file.endsWith(ext))
+    );
 
-      const selected = allFiles.length > 0 
-        ? fs.createReadStream(path.join(randomGifPath, allFiles[Math.floor(Math.random() * allFiles.length)])) 
-        : null;
+    const selected = allFiles.length > 0 
+      ? fs.createReadStream(path.join(randomGifPath, allFiles[Math.floor(Math.random() * allFiles.length)])) 
+      : null;
 
-      const messageBody = `┏━━━━━━━ 🛰️ ━━━━━━━┓
-   💠 𝗥𝗢𝗬𝗔𝗟 𝗘𝗡𝗧𝗥𝗬: ${botName} 💠
-┗━━━━━━━ 🌌 ━━━━━━━┛
+    const botEntryMsg = `╭┈────────────── 💠 ──────────────┈╮
+      ✨ 𝗦𝗬𝗦𝗧𝗘𝗠 𝗜𝗡𝗦𝗧𝗔𝗟𝗟𝗘𝗗: ${botName} ✨
+╰┈────────────── 🛰️ ──────────────┈╯
 
-✨ 𝐓𝐡𝐚𝐧𝐤 𝐲𝐨𝐮 𝐬𝐨 𝐦𝐮𝐜𝐡 𝐟𝐨𝐫 𝐚𝐝𝐝𝐢𝐧𝐠 𝐦𝐞!
-আমি এই গ্রুপের প্রতিটি মুহূর্তকে আনন্দময় করে তুলতে প্রস্তুত। 🖤🤗
+  👋 আসসালামু আলাইকুম! আমাকে এই চমৎকার গ্রুপে 
+  যুক্ত করার জন্য অসংখ্য ধন্যবাদ। আমি প্রস্তুত! 🚀
 
-🛠️ 𝗔𝘃𝗮𝗶𝗹𝗮𝗯𝗹𝗲 𝗖𝗼𝗺𝗺𝗮𝗻𝗱𝘀:
-🔹 ${botPrefix}Help  |  🔹 ${botPrefix}Info  |  🔹 ${botPrefix}Admin
+  🛠️ 𝗤𝘂𝗶𝗰𝗸 𝗠𝗲𝗻𝘂:
+  🔹 [ ${botPrefix} ] Help  - সব কমান্ড দেখতে।
+  🔹 [ ${botPrefix} ] Info  - বট সম্পর্কে জানতে।
 
-━━━━━━━━━━━━━━━━━━━━━
-👑 𝗢𝘄𝗻𝗲𝗿: BELAL
-📱 𝗪𝗵𝗮𝘁𝘀𝗔𝗽𝗽: 01913246554
-🌐 𝗙𝗕: https://www.facebook.com/mahi.gaming.165
-━━━━━━━━━━━━━━━━━━━━━
-┄┉❈✡️⋆⃝চাঁদেড়~পাহাড়✿⃝🪬❈┉┄`;
+  💎 𝗗𝗲𝘃𝗲𝗹𝗼𝗽𝗲𝗿 𝗖𝗼𝗻𝘁𝗮𝗰𝘁:
+  👤 Owner: 𝗕𝗘𝗟𝗔𝗟 (𝗩𝗲𝗿𝗶𝗳𝗶𝗲𝗱)
+  🌐 FB ID: ${myFB}
+  📞 WhatsApp: 01913246554
 
-      if (selected) {
-        api.sendMessage({ body: messageBody, attachment: selected }, threadID);
-      } else {
-        api.sendMessage(messageBody, threadID);
-      }
-    });
+  ┈───────── 💠 𝗦𝘁𝗮𝘁𝘂𝘀: 𝗔𝗰𝘁𝗶𝘃𝗲 ─────────┈
+      ✡️⃝🅰🅳🅼🅸🇳─͢͢চৃাঁদেৃঁরৃঁ পাৃঁহা্ঁড়ৃঁ✡️`;
 
-    return;
+    return api.sendMessage({ body: botEntryMsg, attachment: selected }, threadID);
   }
 
-  // যখন নতুন মেম্বার জয়েন করবে (মেম্বারদের জন্য গ্র্যান্ড ওয়েলকাম)
+  // 🎊 ২. নতুন মেম্বারদের জন্য ড্রিম ওয়েলকাম (Member Entry)
   try {
-    const { createReadStream, readdirSync } = global.nodemodule["fs-extra"];
     let { threadName, participantIDs } = await api.getThreadInfo(threadID);
     const threadData = global.data.threadData.get(parseInt(threadID)) || {};
-    let mentions = [], nameArray = [], memLength = [], i = 0;
+    let mentions = [], nameArray = [], memCount = participantIDs.length;
 
     for (let id in event.logMessageData.addedParticipants) {
       const userName = event.logMessageData.addedParticipants[id].fullName;
       nameArray.push(userName);
       mentions.push({ tag: userName, id: event.logMessageData.addedParticipants[id].userFbId });
-      memLength.push(participantIDs.length - i++);
     }
-    memLength.sort((a, b) => a - b);
 
-    let msg = (typeof threadData.customJoin === "undefined") ? `┏━━━━━━━ 🌸 ━━━━━━━┓
-   🎊 𝗪𝗘𝗟𝗖𝗢𝗠𝗘 𝗧𝗢 𝗢𝗨𝗥 𝗙𝗔𝗠𝗜𝗟𝗬 🎊
-┗━━━━━━━ 💎 ━━━━━━━┛
+    const memberMsg = `╭┈─────── 🎊 𝗪𝗘𝗟𝗖𝗢𝗠𝗘 🎊 ───────┈╮
+       𝗦𝗼𝗳𝘁 & 𝗘𝗹𝗶𝘁𝗲 𝗚𝗿𝗲𝗲𝘁𝗶𝗻𝗴𝘀! 🌸
+╰┈────────────────────────────┈╯
 
-🌹 হাসি, আনন্দ আর বন্ধুত্বের ছোঁয়ায় গড়ে উঠুক আমাদের এই রাজকীয় পরিবার।🥰 আমাদের এই বন্ধন হোক চিরস্থায়ী ও পবিত্র।💝
+  ✨ স্বাগতম {name}! 
+  আমাদের এই রাজকীয় পরিবারে আপনাকে পেয়ে আমরা আনন্দিত। 💝
+  আশা করি আপনার সময়টি এখানে দারুণ কাটবে। 🥰
 
-📜 𝗚𝗿𝗼𝘂𝗽 𝗚𝘂𝗶𝗱𝗲𝗹𝗶𝗻𝗲𝘀:
-⭐ সবার সাথে মার্জিত ও সুন্দর ব্যবহার কাম্য।😍
-⭐ একে অপরের প্রতি সম্মান বজায় রাখুন।🤝
-⭐ অশালীন কথা বা গালিগালাজ কঠোরভাবে নিষিদ্ধ।🚫
-⭐ গ্রুপের সকল নিয়ম ও এডমিনের কথা মেনে চলুন।✅
+  📜 𝗖𝗼𝗺𝗺𝘂𝗻𝗶𝘁𝘆 𝗥𝘂𝗹𝗲𝘀:
+  💠 একে অপরকে সম্মান করুন (Respect All)
+  💠 গালিগালাজ সম্পূর্ণ নিষিদ্ধ (No Bad Words)
+  💠 এডমিনের কথা মেনে চলুন (Follow Admin)
 
-━━━━━━━━━━━━━━━━━━━━━
-👤 𝗡𝗮𝗺𝗲: {name}
-🔢 𝗠𝗲𝗺𝗯𝗲𝗿 𝗡𝗼: {soThanhVien}
-🏘️ 𝗚𝗿𝗼𝘂𝗽: {threadName}
-━━━━━━━━━━━━━━━━━━━━━
+  📊 𝗜𝗻𝗳𝗼𝗿𝗺𝗮𝘁𝗶𝗼𝗻:
+  👤 Name: {name}
+  🔢 Member No: ${memCount}
+  🏘️ Group: {threadName}
 
-💌 𝖧𝖺𝗏𝖾 𝖺 𝖶𝗈𝗇𝖽𝖾𝗋𝖿𝗎𝗅 𝖳𝗂𝗆𝖾 𝖶𝗂𝗍𝗁 𝖴𝗌! 🌺
-╭─╼╾─╼🌸╾─╼╾───╮
-   ┄┉❈✡️⋆⃝চাঁদেড়~পাহাড়✿⃝🪬❈┉┄
-╰───╼╾─╼🌸╾─╼╾─╯` : threadData.customJoin;
+  ┈──────── 💠 𝗢𝘄𝗻𝗲𝗿 𝗜𝗻𝗳𝗼 ────────┈
+  👑 Admin: 𝗕𝗘𝗟𝗔𝗟 (𝗩𝗲𝗿𝗶𝗳𝗶𝗲𝗱)
+  🌐 FB ID: ${myFB}
+  
+  ┈───╼ ┄┉❈✡️⋆⃝চৃাঁদেৃঁরৃঁ পাৃঁহা্ঁড়ৃঁ✿⃝🪬 ╾───┈`;
 
-    msg = msg
+    const finalMsg = memberMsg
       .replace(/\{name}/g, nameArray.join(', '))
-      .replace(/\{soThanhVien}/g, memLength.join(', '))
       .replace(/\{threadName}/g, threadName);
 
     const joinGifPath = path.join(__dirname, "cache", "joinGif");
-    const files = readdirSync(joinGifPath).filter(file =>
+    const files = fs.readdirSync(joinGifPath).filter(file =>
       [".mp4", ".jpg", ".png", ".jpeg", ".gif", ".mp3"].some(ext => file.endsWith(ext))
     );
     const randomFile = files.length > 0 
-      ? createReadStream(path.join(joinGifPath, files[Math.floor(Math.random() * files.length)])) 
+      ? fs.createReadStream(path.join(joinGifPath, files[Math.floor(Math.random() * files.length)])) 
       : null;
 
     return api.sendMessage(
-      randomFile ? { body: msg, attachment: randomFile, mentions } : { body: msg, mentions },
+      { body: finalMsg, attachment: randomFile, mentions },
       threadID
     );
   } catch (e) {
     console.error(e);
   }
 };
-    
+        
