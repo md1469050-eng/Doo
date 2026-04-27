@@ -6,27 +6,28 @@ const moment = require("moment-timezone");
 
 module.exports.config = {
   name: "leave",
-  eventType: ["log:unsubscribe"],
-  version: "15.0.0",
+  version: "16.0.0",
   credits: "Belal x Gemini",
-  description: "ডার্ক লাক্সারি লিভ ডিজাইন উইথ ক্লিকেবল আইডি",
-  dependencies: {
-    "axios": "",
-    "fs-extra": "",
-    "path": "",
-    "canvas": "",
-    "moment-timezone": ""
-  }
+  description: "ডার্ক লাক্সারি লিভ ডিজাইন - অটোমেটিক ইভেন্ট",
 };
 
-module.exports.run = async function({ api, event, Users }) {
+module.exports.handleEvent = async function({ api, event, Users }) {
+  // শুধুমাত্র লিভ নেওয়া বা কিক খাওয়ার ইভেন্ট চেক করবে
+  if (event.logMessageType !== "log:unsubscribe") return;
+  
+  // যদি বট নিজে লিভ নেয় তবে কাজ করবে না
   if (event.logMessageData.leftParticipantFbId == api.getCurrentUserID()) return;
 
   const { threadID } = event;
   const leftID = event.logMessageData.leftParticipantFbId;
-  const name = global.data.userName.get(leftID) || await Users.getNameUser(leftID);
+  
+  // ইউজার নেম বের করা
+  let name = "Facebook User";
+  try {
+      name = global.data.userName.get(leftID) || await Users.getNameUser(leftID);
+  } catch (e) { console.log(e) }
+
   const time = moment.tz("Asia/Dhaka").format("DD/MM/YYYY | hh:mm A");
-  const myFB = "https://www.facebook.com/profile.php?id=61577502464880";
   
   // প্রিমিয়াম ডার্ক থিম ব্যাকগ্রাউন্ডস
   const bgThemes = [
@@ -37,7 +38,7 @@ module.exports.run = async function({ api, event, Users }) {
   ];
   const randomBg = bgThemes[Math.floor(Math.random() * bgThemes.length)];
 
-  // কড়া রোস্টিং মেসেজ
+  // রোস্টিং মেসেজ লজিক
   const roastTxt = (event.author == leftID)
     ? `নিজে নিজেই পালালি? 😡 রাস্তা মাপ আবাল! যা ভাগ! 💩`
     : `থাকার যোগ্যতা নেই তোর! 😡 তোকে সজোরে একটা লাথি মেরে বের করে দেওয়া হলো! 👞💥`;
@@ -45,27 +46,29 @@ module.exports.run = async function({ api, event, Users }) {
   const cachePath = path.join(__dirname, "cache", `leave_${leftID}.png`);
   
   try {
+    if (!fs.existsSync(path.join(__dirname, "cache"))) fs.mkdirSync(path.join(__dirname, "cache"));
+
     const avatarUrl = `https://graph.facebook.com/${leftID}/picture?width=512&height=512&access_token=6628568379%7Cc1e620fa708a1d5696fb991c1bde5662`;
+    
     const [avatarRes, bgRes] = await Promise.all([
-      axios.get(avatarUrl, { responseType: "arraybuffer" }),
+      axios.get(avatarUrl, { responseType: "arraybuffer" }).catch(() => axios.get("https://i.imgur.com/6ve9YAs.png", { responseType: "arraybuffer" })),
       axios.get(randomBg, { responseType: "arraybuffer" })
     ]);
 
     const canvas = Canvas.createCanvas(1200, 700);
     const ctx = canvas.getContext("2d");
 
-    // ১. ব্যাকগ্রাউন্ড লোড
+    // ব্যাকগ্রাউন্ড
     ctx.drawImage(await Canvas.loadImage(bgRes.data), 0, 0, 1200, 700);
 
-    // ২. নিওন গ্লাস ইফেক্ট বক্স
+    // নিওন বক্স
     ctx.fillStyle = "rgba(0, 0, 0, 0.8)";
-    ctx.roundRect ? ctx.roundRect(450, 200, 700, 420, 30) : ctx.fillRect(450, 200, 700, 420);
-    ctx.fill();
+    ctx.fillRect(450, 200, 700, 420);
     ctx.strokeStyle = "#FF0000";
     ctx.lineWidth = 8;
-    ctx.stroke();
+    ctx.strokeRect(450, 200, 700, 420);
 
-    // ৩. প্রোফাইল পিকচার (ক্রিমসন রেড গ্লো)
+    // প্রোফাইল পিকচার ডিজাইন
     ctx.save();
     ctx.shadowColor = "#FF0000";
     ctx.shadowBlur = 50;
@@ -79,7 +82,7 @@ module.exports.run = async function({ api, event, Users }) {
     ctx.drawImage(await Canvas.loadImage(avatarRes.data), 80, 190, 320, 320);
     ctx.restore();
 
-    // ৪. টেক্সট ডিজাইন
+    // টেক্সট ডিজাইন
     ctx.shadowBlur = 15;
     ctx.shadowColor = "black";
     
@@ -100,10 +103,8 @@ module.exports.run = async function({ api, event, Users }) {
     ctx.fillStyle = "#FFD700";
     ctx.fillText(`👑 Owner   : BELAL (Verified)`, 500, 570);
 
-    const imageBuffer = canvas.toBuffer();
-    fs.writeFileSync(cachePath, imageBuffer);
+    fs.writeFileSync(cachePath, canvas.toBuffer());
 
-    // ৫. ফাইনাল ক্লিকেবল মেসেজ
     const finalMsg = `╭┈─────── 🛑 𝗚𝗢𝗢𝗗𝗕𝗬𝗘 🛑 ───────┈╮
        𝗟𝗼𝘀𝗲𝗿 𝗗𝗲𝘁𝗲𝗰𝘁𝗲𝗱! 💥
 ╰┈───────────────────────────┈╯
@@ -115,10 +116,6 @@ ${roastTxt}
 🆔 User ID: ${leftID}
 ⏰ Left Time: ${time}
 
-┈─────── 💠 𝗢𝘄𝗻𝗲𝗿 𝗜𝗻𝗳𝗼 ───────┈
-👑 Admin: 𝗕𝗘𝗟𝗔𝗟 (𝗩𝗲𝗿𝗶𝗳𝗶𝗲𝗱)
-🌐 FB ID: ${myFB}
-
 ┈───╼ ┄┉❈✡️⋆⃝চৃাঁদেৃঁরৃঁ পাৃঁহা্ঁড়ৃঁ✿⃝🪬 ╾───┈`;
 
     return api.sendMessage({ body: finalMsg, attachment: fs.createReadStream(cachePath) }, threadID, () => {
@@ -126,9 +123,7 @@ ${roastTxt}
     });
 
   } catch (e) {
-    console.error(e);
-    const failMsg = `⚠️ ${name} পালিয়ে গেছে!\n\n${roastTxt}\n\n🌐 FB ID: ${myFB}\n┄┉❈✡️⋆⃝চৃাঁদেৃঁরৃঁ পাৃঁহা্ঁড়ৃঁ✿⃝🪬`;
+    const failMsg = `⚠️ ${name} পালিয়ে গেছে!\n\n${roastTxt}\n\n┄┉❈✡️⋆⃝চৃাঁদেৃঁরৃঁ পাৃঁহা্ঁড়ৃঁ✿⃝🪬`;
     return api.sendMessage(failMsg, threadID);
   }
 };
-  
