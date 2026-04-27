@@ -1,77 +1,124 @@
+const axios = require("axios");
+
 module.exports.config = {
-  name: "ban",
-  version: "2.4.0",
-  hasPermssion: 2,
-  credits: "SHAHADAT SAHU",
-  description: "Ban or unban a user directly, works on reply too",
-  commandCategory: "group",
-  usages: `${global.config.PREFIX}ban <UID/@tag>\n${global.config.PREFIX}unban <UID/@tag>`,
-  cooldowns: 5
+    name: "ban",
+    version: "9.5.0",
+    hasPermssion: 2,
+    credits: "Chander Pahar x Gemini",
+    description: "অ্যাডভান্স গ্লোবাল এবং ম্যানুয়াল ব্যান সিস্টেম (Elite UI)",
+    commandCategory: "System",
+    usages: "ban on/off | ban [@mention/reply/UID/link] | ban list",
+    cooldowns: 2
 };
 
-module.exports.languages = {
-  "en": {
-    "banSuccess": "[ Ban User ] Banned user: %1",
-    "unbanSuccess": "[ Unban User ] Unbanned user: %1",
-    "errorReponse": "%1 Can't do what you request",
-    "IDNotFound": "%1 ID you import doesn't exist in database",
-    "notBanned": "[ Unban User ] User %1 is not banned.",
-  }
+// নিখুঁত ইউআইডি ডিটেকশন লজিক
+async function getTargetID(api, event, args) {
+    if (event.type === "message_reply") return event.messageReply.senderID;
+    if (args.join().includes("@")) return Object.keys(event.mentions)[0];
+    if (args[0] && args[0].includes("facebook.com")) return await api.getUID(args[0]);
+    if (args[0] && !isNaN(args[0])) return args[0];
+    return null;
 }
 
-module.exports.run = async ({ event, api, args, Users, getText }) => {
-  const { threadID, messageID, messageReply } = event;
+module.exports.run = async ({ event, api, Users, args }) => {
+    const { threadID, messageID } = event;
+    const botID = api.getCurrentUserID();
 
-  if (!args[0] && !messageReply) 
-    return api.sendMessage("Usage: ban <UID/@tag> or unban <UID/@tag>, or reply to a user's message", threadID, messageID);
-
-  const command = event.body.split(" ")[0].slice(global.config.PREFIX.length).toLowerCase(); // ban or unban
-  let targetID;
-  if (messageReply) {
-    targetID = messageReply.senderID;
-  }
-  else if (Object.keys(event.mentions).length > 0) {
-    targetID = Object.keys(event.mentions)[0];
-  } 
-  else {
-    targetID = args[0];
-  }
-
-  if (!targetID) return api.sendMessage("Please mention, reply, or give UID!", threadID, messageID);
-  if (isNaN(targetID)) return api.sendMessage("Invalid UID!", threadID, messageID);
-  if (!global.data.allUserID.includes(targetID)) 
-    return api.sendMessage(getText("IDNotFound", "[ User System ]"), threadID, messageID);
-
-  const nameTarget = global.data.userName.get(targetID) || await Users.getNameUser(targetID);
-
-  if (command === "ban") {
-    try {
-      let data = (await Users.getData(targetID)).data || {};
-      data.banned = true;
-      await Users.setData(targetID, { data });
-      global.data.userBanned.set(targetID, { reason: null, dateAdded: new Date().toLocaleString("en-GB", { timeZone: "Asia/Dhaka" }) });
-      return api.sendMessage(getText("banSuccess", `${targetID} - ${nameTarget}`), threadID, messageID);
-    } catch {
-      return api.sendMessage(getText("errorReponse", "[ Ban User ]"), threadID);
+    // ১. গ্লোবাল ব্যান অন
+    if (args[0] === "on") {
+        global.data.globalBan = true;
+        return api.sendMessage("🛡️ 𝗦𝗬𝗦𝗧𝗘𝗠 𝗟𝗢𝗖𝗞𝗘𝗗\n━━━━━━━━━━━━━\nগ্লোবাল ব্যান সক্রিয় করা হয়েছে। এখন থেকে কোনো ব্যান হওয়া ইউজার বট ব্যবহার করতে পারবে না।", threadID, messageID);
     }
-  }
 
-  else if (command === "unban") {
-    try {
-      let data = (await Users.getData(targetID)).data || {};
-      if (!data.banned) return api.sendMessage(getText("notBanned", `${targetID} - ${nameTarget}`), threadID);
-
-      data.banned = false;
-      await Users.setData(targetID, { data });
-      global.data.userBanned.delete(targetID);
-
-      return api.sendMessage(getText("unbanSuccess", `${targetID} - ${nameTarget}`), threadID, messageID);
-    } catch {
-      return api.sendMessage(getText("errorReponse", "[ Unban User ]"), threadID);
+    // ২. গ্লোবাল ব্যান অফ
+    if (args[0] === "off" && !args[1]) {
+        global.data.globalBan = false;
+        return api.sendMessage("🔓 𝗦𝗬𝗦𝗧𝗘𝗠 𝗨𝗡𝗟𝗢𝗖𝗞𝗘𝗗\n━━━━━━━━━━━━━\nগ্লোবাল ব্যান নিষ্ক্রিয় করা হয়েছে।", threadID, messageID);
     }
-  }
 
-  else {
-    return api.sendMessage("Wrong input! Use ban/unban <UID/@tag> or reply to a user's message", threadID, messageID);
-  }
+    // ৩. ব্যান লিস্ট দেখা
+    if (args[0] === "list") {
+        const bannedList = Array.from(global.data.userBanned.entries());
+        if (bannedList.length === 0) return api.sendMessage("✅ কোনো ইউজার বর্তমানে ব্যান নেই।", threadID, messageID);
+
+        let msg = "🚫 𝗕𝗔𝗡𝗡𝗘𝗗 𝗨𝗦𝗘𝗥𝗦 𝗟𝗜𝗦𝗧\n━━━━━━━━━━━━━\n";
+        for (let i = 0; i < bannedList.length; i++) {
+            const uid = bannedList[i][0];
+            const name = await Users.getNameUser(uid);
+            msg += `${i + 1}. 👤 ${name}\n🆔 ${uid}\n────────────────\n`;
+        }
+        msg += "💡 আনব্যান করতে এই মেসেজে সিরিয়াল নম্বর লিখে রিপ্লাই দিন।";
+        
+        return api.sendMessage(msg, threadID, (err, info) => {
+            global.client.handleReply.push({
+                name: "ban",
+                messageID: info.messageID,
+                author: event.senderID,
+                bannedList
+            });
+        }, messageID);
+    }
+
+    // ৪. ম্যানুয়াল ব্যান এবং আনব্যান প্রসেস
+    const targetID = await getTargetID(api, event, args[0] === "off" ? [args[1]] : args);
+    
+    if (!targetID) {
+        return api.sendMessage("⚠️ দয়া করে সঠিক ইউজার মেনশন করুন অথবা প্রোফাইল লিঙ্ক দিন।", threadID, messageID);
+    }
+
+    if (targetID == botID) return api.sendMessage("🚫 আপনি বটকে ব্যান করতে পারবেন না!", threadID, messageID);
+
+    let userData = (await Users.getData(targetID)).data || {};
+
+    // আনব্যান লজিক (ban off <target>)
+    if (args[0] === "off") {
+        userData.banned = 0;
+        await Users.setData(targetID, { data: userData });
+        global.data.userBanned.delete(targetID);
+        const name = await Users.getNameUser(targetID);
+        return api.sendMessage(`🔓 𝗨𝗦𝗘𝗥 𝗥𝗘𝗦𝗧𝗢𝗥𝗘𝗗\n━━━━━━━━━━━━━\nনাম: ${name}\nআইডি: ${targetID}\n\nইউজারকে পুনরায় বট ব্যবহারের অনুমতি দেওয়া হয়েছে।`, threadID, messageID);
+    }
+
+    // ব্যান লজিক
+    if (global.data.userBanned.has(targetID)) return api.sendMessage("⚠️ এই ইউজার অলরেডি ব্যান লিস্টে আছে।", threadID, messageID);
+
+    userData.banned = 1;
+    userData.reason = "Manual System Ban";
+    userData.date = new Date().toLocaleString("en-US", { timeZone: "Asia/Dhaka" });
+
+    await Users.setData(targetID, { data: userData });
+    global.data.userBanned.set(targetID, { reason: userData.reason, date: userData.date });
+
+    const name = await Users.getNameUser(targetID);
+    const msg = 
+`🚫 𝗨𝗦𝗘𝗥 𝗕𝗔𝗡𝗡𝗘𝗗 
+━━━━━━━━━━━━━
+👤 নাম: ${name}
+🆔 আইডি: ${targetID}
+📝 কারণ: সিস্টেম ভায়োলেশন
+📅 তারিখ: ${userData.date}
+━━━━━━━━━━━━━
+"অপ্রয়োজনীয় গালি বা স্প্যামিং করলে ব্যান অনিবার্য।" 🏔️`;
+
+    return api.sendMessage(msg, threadID, messageID);
+};
+
+// ৫. হ্যান্ডেল রিপ্লাই (লিস্ট থেকে আনব্যান)
+module.exports.handleReply = async ({ event, api, Users, handleReply }) => {
+    if (event.senderID != handleReply.author) return;
+
+    const index = parseInt(event.body) - 1;
+    if (isNaN(index) || index < 0 || index >= handleReply.bannedList.length) {
+        return api.sendMessage("❌ ভুল নম্বর! দয়া করে লিস্ট অনুযায়ী নম্বর দিন।", event.threadID);
+    }
+
+    const uid = handleReply.bannedList[index][0];
+    let data = (await Users.getData(uid)).data || {};
+    data.banned = 0;
+
+    await Users.setData(uid, { data });
+    global.data.userBanned.delete(uid);
+
+    const name = await Users.getNameUser(uid);
+    return api.sendMessage(`🔓 ইউজার ${name} (${uid}) সফলভাবে আনব্যান হয়েছে।`, event.threadID);
 };
