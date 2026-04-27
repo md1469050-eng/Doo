@@ -4,9 +4,9 @@ const path = require("path");
 module.exports.config = {
   name: "joinnoti",
   eventType: ["log:subscribe"],
-  version: "4.0.0",
+  version: "5.0.0",
   credits: "Belal x Gemini",
-  description: "চাঁদের পাহাড় ফিউচারিস্টিক ওয়েলকাম ডিজাইন উইথ ক্লিকেবল আইডি",
+  description: "আল্ট্রা-লাক্সারি ফিউচারিস্টিক ডিজাইন উইথ ডায়নামিক ইমোজি",
   dependencies: {
     "fs-extra": "",
     "path": ""
@@ -27,10 +27,14 @@ module.exports.onLoad = function () {
 module.exports.run = async function({ api, event }) {
   const { threadID } = event;
   const botPrefix = global.config.PREFIX || "/";
-  const botName = "𝗕𝗘𝗟𝗔𝗟 𝗕𝗢𝗧-𝗫𝟲𝟲𝟲"; 
-  const myFB = "https://www.facebook.com/profile.php?id=61577502464880";
+  const botName = "𝗕𝗘𝗟𝗔𝗟 𝗕𝗢𝗧-𝗫𝟲𝟲𝟲";
 
-  // 🚀 ১. বটের নিজের রাজকীয় প্রবেশ (Bot Entry)
+  // ৪০+ প্রিমিয়াম ও ইউনিক ইমোজি কালেকশন
+  const emojiMax = ["🔱", "💎", "🛡️", "🛸", "🌀", "🛰️", "🦾", "🧿", "💫", "🎐", "🐉", "🔥", "👑", "🌠", "🌌", "🏙️", "🏮", "🎭", "🎮", "🍾", "🥃", "✨", "🌟", "🎇", "🔮", "🧪", "⚙️", "🔋", "📡", "🛸", "🧊", "💠", "🏆", "🦾", "🎖️", "⚡", "🌈", "🎋", "🍃", "🌹"];
+  
+  const rand = (arr) => arr[Math.floor(Math.random() * arr.length)];
+
+  // 🚀 ১. বটের রাজকীয় প্রবেশ (Bot Entry)
   if (event.logMessageData.addedParticipants.some(i => i.userFbId == api.getCurrentUserID())) {
     await api.changeNickname(`[ ${botPrefix} ] • ${botName}`, threadID, api.getCurrentUserID());
 
@@ -43,32 +47,29 @@ module.exports.run = async function({ api, event }) {
       ? fs.createReadStream(path.join(randomGifPath, allFiles[Math.floor(Math.random() * allFiles.length)])) 
       : null;
 
-    const botEntryMsg = `╭┈────────────── 💠 ──────────────┈╮
-      ✨ 𝗦𝗬𝗦𝗧𝗘𝗠 𝗜𝗡𝗦𝗧𝗔𝗟𝗟𝗘𝗗: ${botName} ✨
-╰┈────────────── 🛰️ ──────────────┈╯
+    const botEntryMsg = `╭━━━━━━━⊱ ${rand(emojiMax)} ⊰━━━━━━━╮
+    🛰️ 𝗦𝗬𝗦𝗧𝗘𝗠 𝗢𝗡𝗟𝗜𝗡𝗘 🚀
+╰━━━━━━━⊱ ${rand(emojiMax)} ⊰━━━━━━━╯
 
-  👋 আসসালামু আলাইকুম! আমাকে এই চমৎকার গ্রুপে 
-  যুক্ত করার জন্য অসংখ্য ধন্যবাদ। আমি প্রস্তুত! 🚀
+👋 আসসালামু আলাইকুম! ${botName} এখন আপনার সেবায় নিয়োজিত। 
 
-  🛠️ 𝗤𝘂𝗶𝗰𝗸 𝗠𝗲𝗻𝘂:
-  🔹 [ ${botPrefix} ] Help  - সব কমান্ড দেখতে।
-  🔹 [ ${botPrefix} ] Info  - বট সম্পর্কে জানতে।
+📡 𝗠𝗘𝗡𝗨 𝗖𝗢𝗡𝗧𝗥𝗢𝗟:
+━━━━━━━━━━━━━━━━━━━━
+⌬ [ ${botPrefix} ] Help  ➔ কমান্ড লিস্ট
+⌬ [ ${botPrefix} ] Info  ➔ বট ডিটেইলস
+━━━━━━━━━━━━━━━━━━━━
 
-  💎 𝗗𝗲𝘃𝗲𝗹𝗼𝗽𝗲𝗿 𝗖𝗼𝗻𝘁𝗮𝗰𝘁:
-  👤 Owner: 𝗕𝗘𝗟𝗔𝗟 (𝗩𝗲𝗿𝗶𝗳𝗶𝗲𝗱)
-  🌐 FB ID: ${myFB}
-  📞 WhatsApp: 01913246554
+👑 𝗢𝘄𝗻𝗲𝗿 : 𝗕𝗘𝗟𝗔𝗟 (𝗩𝗲𝗿𝗶𝗳𝗶𝗲𝗱)
+📞 𝗪𝗵𝗮𝘁𝘀𝗔𝗽𝗽 : 01913246554
 
-  ┈───────── 💠 𝗦𝘁𝗮𝘁𝘂𝘀: 𝗔𝗰𝘁𝗶𝘃𝗲 ─────────┈
-      ✡️⃝🅰🅳🅼🅸🇳─͢͢চৃাঁদেৃঁরৃঁ পাৃঁহা্ঁড়ৃঁ✡️`;
+┈──╼ ${rand(emojiMax)}⃝🅰🅳🅼🅸🇳─͢͢চৃাঁদেৃঁরৃঁ পাৃঁহা্ঁড়ৃঁ${rand(emojiMax)}`;
 
     return api.sendMessage({ body: botEntryMsg, attachment: selected }, threadID);
   }
 
-  // 🎊 ২. নতুন মেম্বারদের জন্য ড্রিম ওয়েলকাম (Member Entry)
+  // 🎊 ২. নতুন মেম্বারদের জন্য ড্রিম স্বাগতম (New Generation Design)
   try {
     let { threadName, participantIDs } = await api.getThreadInfo(threadID);
-    const threadData = global.data.threadData.get(parseInt(threadID)) || {};
     let mentions = [], nameArray = [], memCount = participantIDs.length;
 
     for (let id in event.logMessageData.addedParticipants) {
@@ -77,33 +78,27 @@ module.exports.run = async function({ api, event }) {
       mentions.push({ tag: userName, id: event.logMessageData.addedParticipants[id].userFbId });
     }
 
-    const memberMsg = `╭┈─────── 🎊 𝗪𝗘𝗟𝗖𝗢𝗠𝗘 🎊 ───────┈╮
-       𝗦𝗼𝗳𝘁 & 𝗘𝗹𝗶𝘁𝗲 𝗚𝗿𝗲𝗲𝘁𝗶𝗻𝗴𝘀! 🌸
-╰┈────────────────────────────┈╯
+    const memberMsg = `┏━━━━━━━  ${rand(emojiMax)}  ━━━━━━━┓
+   🎊 𝗪𝗘𝗟𝗖𝗢𝗠𝗘 𝗧𝗢 𝗩𝗜𝗣 𝗖𝗟𝗔𝗡 🎊
+┗━━━━━━━  ${rand(emojiMax)}  ━━━━━━━┛
 
-  ✨ স্বাগতম {name}! 
-  আমাদের এই রাজকীয় পরিবারে আপনাকে পেয়ে আমরা আনন্দিত। 💝
-  আশা করি আপনার সময়টি এখানে দারুণ কাটবে। 🥰
+✨ প্রিয় ${nameArray.join(', ')}! ${rand(emojiMax)}
+আমাদের এই প্রিমিয়াম পরিবারে আপনাকে উষ্ণ অভ্যর্থনা। 🥰
+আশা করি আমাদের সাথে আপনার কাটানো সময়টি স্মরণীয় হবে। 🌸
 
-  📜 𝗖𝗼𝗺𝗺𝘂𝗻𝗶𝘁𝘆 𝗥𝘂𝗹𝗲𝘀:
-  💠 একে অপরকে সম্মান করুন (Respect All)
-  💠 গালিগালাজ সম্পূর্ণ নিষিদ্ধ (No Bad Words)
-  💠 এডমিনের কথা মেনে চলুন (Follow Admin)
+📊 𝗨𝗦𝗘𝗥 𝗣𝗥𝗢𝗙𝗜𝗟𝗘 𝗗𝗔𝗧𝗔:
+━━━━━━━━━━━━━━━━━━━━
+💠 𝗡𝗮𝗺𝗲    : ${nameArray.join(', ')}
+💠 𝗠𝗲𝗺𝗯𝗲𝗿  : #${memCount} (Verified)
+💠 𝗚𝗿𝗼𝘂𝗽   : ${threadName}
+━━━━━━━━━━━━━━━━━━━━
 
-  📊 𝗜𝗻𝗳𝗼𝗿𝗺𝗮𝘁𝗶𝗼𝗻:
-  👤 Name: {name}
-  🔢 Member No: ${memCount}
-  🏘️ Group: {threadName}
+📜 𝗚𝗨𝗜𝗗𝗘𝗟𝗜𝗡𝗘𝗦:
+◈ সম্মান বজায় রেখে কথা বলুন ${rand(emojiMax)}
+◈ কোনো সমস্যা হলে এডমিনকে মেনশন দিন।
 
-  ┈──────── 💠 𝗢𝘄𝗻𝗲𝗿 𝗜𝗻𝗳𝗼 ────────┈
-  👑 Admin: 𝗕𝗘𝗟𝗔𝗟 (𝗩𝗲𝗿𝗶𝗳𝗶𝗲𝗱)
-  🌐 FB ID: ${myFB}
-  
-  ┈───╼ ┄┉❈✡️⋆⃝চৃাঁদেৃঁরৃঁ পাৃঁহা্ঁড়ৃঁ✿⃝🪬 ╾───┈`;
-
-    const finalMsg = memberMsg
-      .replace(/\{name}/g, nameArray.join(', '))
-      .replace(/\{threadName}/g, threadName);
+👑 𝗔𝗱𝗺𝗶𝗻: 𝗕𝗘𝗟𝗔𝗟 (𝗩𝗲𝗿𝗶𝗳𝗶𝗲𝗱)
+┈──╼ ┄┉❈${rand(emojiMax)}⋆⃝চৃাঁদেৃঁরৃঁ পাৃঁহা্ঁড়ৃঁ${rand(emojiMax)}`;
 
     const joinGifPath = path.join(__dirname, "cache", "joinGif");
     const files = fs.readdirSync(joinGifPath).filter(file =>
@@ -114,11 +109,11 @@ module.exports.run = async function({ api, event }) {
       : null;
 
     return api.sendMessage(
-      { body: finalMsg, attachment: randomFile, mentions },
+      { body: memberMsg, attachment: randomFile, mentions },
       threadID
     );
   } catch (e) {
     console.error(e);
   }
 };
-        
+                                                  
