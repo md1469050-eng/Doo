@@ -1,0 +1,164 @@
+const axios = require("axios");
+const fs = require("fs-extra");
+const path = require("path");
+const os = require("os");
+const { createCanvas, loadImage } = require("canvas");
+const moment = require("moment-timezone");
+
+module.exports = {
+  config: {
+    name: "upv2",
+    aliases: ["uptime", "status"],
+    version: "23.0.0",
+    author: "BELAL ⊶ BOTX666 🪬",
+    countDown: 5,
+    role: 0,
+    category: "system",
+    description: "System status with premium canvas card",
+    usePrefix: true
+  },
+
+  onStart: async function ({ api, event }) {
+    return this.handleUptime({ api, event });
+  },
+
+  onChat: async function ({ api, event }) {
+    const { body, senderID } = event;
+    if (!body) return;
+
+    // চাঁদের পাহাড়ের জন্য No Prefix Access
+    const adminUID = "100078049308655"; 
+    const msg = body.toLowerCase().trim();
+
+    if (senderID == adminUID && (msg == "up" || msg == "uptime")) {
+      return this.handleUptime({ api, event });
+    }
+  },
+
+  handleUptime: async function ({ api, event }) {
+    const { threadID, messageID, senderID } = event;
+    const sig = "\n┄┉❈✡️⋆⃝ 𖤍চাঁদের~পাহাড়𖤍 ⋆⃝🪬❈┉┄";
+
+    const sendChecking = await api.sendMessage("🔍 চাঁদের পাহাড়, সিস্টেম স্ট্যাটাস স্ক্যান করা হচ্ছে...", threadID);
+
+    const timeStart = Date.now();
+    const uptime = process.uptime();
+    const hours = Math.floor(uptime / 3600);
+    const minutes = Math.floor((uptime % 3600) / 60);
+    const timeString = `${hours}h ${minutes}m`;
+
+    const usedMem = ((os.totalmem() - os.freemem()) / (1024 ** 3)).toFixed(1);
+    const totalMem = (os.totalmem() / (1024 ** 3)).toFixed(1);
+    const ramPercentage = Math.round((usedMem / totalMem) * 100);
+    const currentDate = moment.tz("Asia/Dhaka").format("DD/MM/YYYY");
+
+    let userName = "User";
+    try {
+      const info = await api.getUserInfo(senderID);
+      userName = info[senderID].name;
+    } catch (e) { userName = "Commander"; }
+
+    const imgUrl = "https://i.imgur.com/TDkyAdv.jpeg";
+    const userImgUrl = `https://graph.facebook.com/${senderID}/picture?width=512&height=512&access_token=6628568379%7Cc1e620fa708a1d5696fb991c1bde5662`;
+    const cachePath = path.join(__dirname, "cache", `up_belal_${Date.now()}.png`);
+
+    try {
+      if (!fs.existsSync(path.join(__dirname, "cache"))) fs.ensureDirSync(path.join(__dirname, "cache"));
+
+      const image = await loadImage(imgUrl);
+      const canvas = createCanvas(image.width, image.height);
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
+
+      const centerX = canvas.width / 2;
+      const centerY = canvas.height / 2;
+
+      // --- USER PROFILE ---
+      const boxSize = 230;
+      const boxX = centerX - (boxSize / 2);
+      const boxY = centerY - (boxSize / 2) + 10;
+
+      try {
+        const userImg = await loadImage(userImgUrl);
+        ctx.shadowColor = "#00f2fe";
+        ctx.shadowBlur = 30;
+        ctx.strokeStyle = "#ffffff";
+        ctx.lineWidth = 6;
+        ctx.strokeRect(boxX, boxY, boxSize, boxSize);
+        ctx.shadowBlur = 0; 
+        ctx.drawImage(userImg, boxX, boxY, boxSize, boxSize);
+
+        ctx.fillStyle = "rgba(0, 0, 0, 0.7)";
+        ctx.fillRect(boxX, boxY + boxSize - 40, boxSize, 40);
+        ctx.textAlign = "center";
+        ctx.fillStyle = "#ffffff";
+        ctx.font = "bold 20px Arial";
+        ctx.fillText(userName.toUpperCase(), centerX, boxY + boxSize - 12);
+      } catch (err) { console.log("Profile load failed"); }
+
+      // --- Status Circles ---
+      const drawCircle = (x, y, radius, percent, label, value, color) => {
+        ctx.beginPath();
+        ctx.arc(x, y, radius, 0, Math.PI * 2);
+        ctx.strokeStyle = "rgba(255, 255, 255, 0.1)";
+        ctx.lineWidth = 12; ctx.stroke();
+        ctx.beginPath();
+        ctx.arc(x, y, radius, -Math.PI / 2, (-Math.PI / 2) + (Math.PI * 2 * (percent / 100)));
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 12; ctx.lineCap = "round"; ctx.stroke();
+        ctx.shadowColor = color; ctx.shadowBlur = 15;
+        ctx.textAlign = "center"; ctx.fillStyle = "#ffffff";
+        ctx.font = "bold 22px Arial"; ctx.fillText(value, x, y + 8);
+        ctx.shadowBlur = 0;
+        ctx.font = "bold 16px Arial"; ctx.fillStyle = color; ctx.fillText(label, x, y + 42);
+      };
+
+      const uptimeX = boxX - 130;
+      const ramX = boxX + boxSize + 130;
+      drawCircle(uptimeX, centerY + 30, 65, 75, "UPTIME", timeString, "#00ffcc");
+      drawCircle(ramX, centerY - 50, 65, ramPercentage, "RAM", `${ramPercentage}%`, "#ff3366");
+      
+      const pingMS = Date.now() - timeStart;
+      drawCircle(ramX, centerY + 100, 55, 80, "PING", `${pingMS}ms`, "#ffff00");
+
+      // Footer Branding
+      ctx.textAlign = "center";
+      ctx.font = "bold 26px Arial";
+      ctx.fillStyle = "#00ff00";
+      ctx.fillText("● SYSTEM STATUS: ACTIVE", centerX, canvas.height - 60);
+      ctx.font = "italic bold 20px Arial"; 
+      ctx.fillStyle = "#FFD700"; 
+      ctx.fillText("DEVELOPED BY: MD BELAL (BS DEALER)", centerX, canvas.height - 95);
+
+      // Top Header
+      ctx.textAlign = "left";
+      ctx.font = "bold 35px Arial";
+      ctx.shadowColor = "#00f2fe"; ctx.shadowBlur = 20;
+      ctx.fillStyle = "#ffffff";
+      ctx.fillText("[ BOTX666-SYSTEM ]", 180, 130); 
+
+      // Date Display
+      ctx.textAlign = "center";
+      ctx.font = "bold 24px Arial";
+      ctx.fillStyle = "#ffffff";
+      ctx.fillText(`DATE: ${currentDate}`, centerX + 110, 125);
+      ctx.shadowBlur = 0;
+
+      const buffer = canvas.toBuffer("image/png");
+      fs.writeFileSync(cachePath, buffer);
+
+      api.unsendMessage(sendChecking.messageID);
+      return api.sendMessage({
+        body: `╭━━━━━━⊱✨⊰━━━━━━╮\n   𝐒𝐘𝐒𝐓𝐄𝐌 𝐔𝐏𝐓𝐈𝐌𝐄\n╰━━━━━━⊱✨⊰━━━━━━╯\n\n👤 𝐔𝐬𝐞𝐫: ${userName}\n⏰ 𝐔𝐩𝐭𝐢𝐦𝐞: ${timeString}\n📶 𝐏𝐢𝐧𝐠: ${pingMS}ms\n📍 𝐋𝐨𝐜𝐚𝐭𝐢𝐨ন: Kurigram, BD${sig}`,
+        attachment: fs.createReadStream(cachePath)
+      }, threadID, () => {
+        if (fs.existsSync(cachePath)) fs.unlinkSync(cachePath);
+      }, messageID);
+
+    } catch (e) {
+      console.error(e);
+      api.unsendMessage(sendChecking.messageID);
+      return api.sendMessage("❌ এরর: স্ট্যাটাস জেনারেট করা সম্ভব হয়নি!", threadID, messageID);
+    }
+  }
+};
