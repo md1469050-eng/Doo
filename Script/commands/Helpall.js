@@ -1,13 +1,14 @@
 const fs = require("fs-extra");
 const axios = require("axios");
 const path = require("path");
+const moment = require("moment-timezone");
 
 module.exports.config = {
     name: "helpall",
-    version: "8.0.0",
+    version: "11.0.0",
     hasPermssion: 0,
     credits: "Belal x Gemini",
-    description: "আনলিমিটেড ইমোজি ও প্রিমিয়াম ডার্ক-নিওন ডিজাইন",
+    description: "The Most Powerful VIP Infinity Command Dashboard",
     commandCategory: "system",
     usages: "",
     cooldowns: 5
@@ -16,55 +17,63 @@ module.exports.config = {
 module.exports.run = async function ({ api, event }) {
     const { commands } = global.client;
     const { threadID, messageID } = event;
+    const time = moment.tz("Asia/Dhaka").format("hh:mm A");
     const myFB = "https://www.facebook.com/profile.php?id=61577502464880";
     const sig = "┈───╼ ┄┉❈✡️⋆⃝চৃাঁদেৃঁরৃঁ পাৃঁহা্ঁড়ৃঁ✿⃝🪬 ╾───┈";
 
+    // VIP ইমোজি পুল (ইউনিক রেন্ডার লজিক)
+    const icons = ["🪬", "👑", "💎", "🛡️", "🔱", "⚜️", "⚡", "🌌", "🦾", "🧬", "🧪", "🚀", "🛰️", "🛸", "📡", "🧿", "🔮", "⚔️", "🔥", "💎"];
+    let i = 0;
+    const getIcon = () => icons[i++ % icons.length];
+
     const categories = {};
     for (let [name, value] of commands) {
-        const cat = value.config.commandCategory || "General";
+        const cat = value.config.commandCategory || "GENERAL";
         if (!categories[cat]) categories[cat] = [];
         categories[cat].push(name);
     }
 
-    // ইমোজি পুল (প্রতিবার আলাদা ইমোজি ব্যবহারের জন্য)
-    const icons = ["🚀", "⚡", "🛸", "🛰️", "🛸", "🔥", "💎", "☄️", "🛡️", "🧬", "🧪", "⚙️", "🔋", "📡", "💻", "🎮", "👾", "🤖", "👔", "🎒", "👒", "🎩", "🎒", "🥽", "🎒", "🧳", "🧣", "🎩", "👑", "🔮", "🧿", "🩹", "🩺", "🧪", "🧬", "🪜", "⚖️", "⚙️", "🪚", "🪛", "⛓️‍💥", "⛓️", "🔭", "🔬", "🔋", "📻", "🎙️", "🎛️", "⏱️", "⌛", "🕰️", "🪙", "💳", "📜", "📂", "📊", "📈", "📉", "📁", "📅", "📍", "🗝️", "🔨", "⚒️", "🔫", "🗡️", "🏹", "🚬", "💣", "🧨", "🩺", "🪓", "⚔️", "🔱", "⚜️"];
-    
-    let iconIdx = 0;
-    const getIcon = () => icons[iconIdx++ % icons.length];
-
-    let helpMsg = `╭┈─────────── ${getIcon()} ───────────┈╮
-      ${getIcon()} 𝗠𝗔𝗦𝗧𝗘𝗥 𝗕𝗘𝗟𝗔𝗟 𝗡𝗘𝗧𝗪𝗢𝗥𝗞 ${getIcon()}
-╰┈─────────── ${getIcon()} ───────────┈╯\n\n`;
+    let helpMsg = `🌐 ━━━『 𝐕𝐈𝐏 𝐈𝐍𝐅𝐈𝐍𝐈𝐓𝐘 𝐍𝐄𝐓𝐖𝐎𝐑𝐊 』━━━ 🌐\n━━━━━━━━━━━━━━━━━━━━━━━\n\n`;
 
     for (const category in categories) {
-        helpMsg += `┏━━━━ 『 ${category.toUpperCase()} ${getIcon()} 』\n`;
-        // কমান্ড লিস্টে রেন্ডম ইউনিক ইমোজি
-        const list = categories[category].sort().map(cmd => `┃ ${getIcon()} ❯ ${cmd}`).join("\n");
-        helpMsg += `${list}\n┗━━━━━━━━━━━━━━━━━━━━┈ ${getIcon()}\n\n`;
+        const catIcon = getIcon();
+        helpMsg += `┏━━━ 『 ${catIcon} ${category.toUpperCase()} ${catIcon} 』\n`;
+        
+        // কমান্ডগুলো সাজানো হচ্ছে প্রফেশনাল গ্রিড স্টাইলে
+        const sortedCmds = categories[category].sort();
+        for (let j = 0; j < sortedCmds.length; j++) {
+            helpMsg += `┃ ${getIcon()} ❯ ${sortedCmds[j].padEnd(12)}\n`;
+        }
+        helpMsg += `┗━━━━━━━━━━━━━━━━━━━━┈ ✨\n\n`;
     }
 
-    helpMsg += `┈───────── ${getIcon()} 𝗦𝗬𝗦𝗧𝗘𝗠 𝗦𝗧𝗔𝗧𝗦 ${getIcon()} ─────────┈
-  ${getIcon()} 𝗧𝗼𝘁𝗮𝗹 𝗖𝗼𝗺𝗺𝗮𝗻𝗱𝘀 : ${commands.size}
-  ${getIcon()} 𝗦𝘁𝗮𝘁𝘂𝘀         : 𝗔𝗰𝘁𝗶𝘃𝗲 & 𝗦𝗲𝗰𝘂𝗿𝗲𝗱
-  ${getIcon()} 👑 𝗢𝘄𝗻𝗲𝗿        : 𝗕𝗘𝗟𝗔𝗟 (𝗩𝗲𝗿𝗶𝗳𝗶𝗲𝗱)
-  ${getIcon()} 🔗 𝗙𝗕 𝗣𝗿𝗼𝗳𝗶𝗹𝗲    : ${myFB}
+    helpMsg += `📊 ━━━『 𝐕𝐈𝐏 𝐒𝐘𝐒𝐓𝐄𝐌 𝐒𝐓𝐀𝐓𝐒 』━━━ 📊
+  
+  🛰️ 𝗧𝗼𝘁𝗮𝗹 𝗖𝗼𝗺𝗺𝗮𝗻𝗱𝘀 : ${commands.size} 
+  🛡️ 𝗦𝗲𝗰𝘂𝗿𝗶𝘁𝘆 𝗟𝗲𝘃𝗲𝗹 : 𝐈𝐧𝐟𝐢𝐧𝐢𝐭𝐲 (𝐕𝐈𝐏)
+  ⏰ 𝗨𝗽𝗱𝗮𝘁𝗲𝗱 𝗔𝘁    : ${time}
+  
+  👑 𝐎𝐰𝐧𝐞𝐫 : 𝐁𝐄𝐋𝐀𝐋 (𝐕𝐞𝐫𝐢𝐟𝐢𝐞𝐝)
+  🔗 𝐅𝐁 𝐈𝐃 : profile.php?id=61577502464880
 
   ${sig}
-  ${getIcon()} "Power is nothing without Control." ${getIcon()}`;
+  ✨ "Infinity is not a limit, it's a Status." ✨`;
 
-    const backgrounds = [
-        "https://i.imgur.com/6b6DGcW.jpeg",
-        "https://i.imgur.com/FQQq8WH.jpeg"
+    // হাই-ডেফিনিশন ডার্ক ভিআইপি ইমেজ
+    const vipImages = [
+        "https://i.imgur.com/YmKByaI.jpeg",
+        "https://i.imgur.com/uN2tK9Q.jpeg",
+        "https://i.imgur.com/vHq0L9j.jpeg"
     ];
     
-    const selectedBg = backgrounds[Math.floor(Math.random() * backgrounds.length)];
-    const cacheDir = path.join(__dirname, "cache");
+    const selectedImg = vipImages[Math.floor(Math.random() * vipImages.length)];
+    const cacheDir = path.join(process.cwd(), "cache");
     if (!fs.existsSync(cacheDir)) fs.mkdirSync(cacheDir, { recursive: true });
-    const imgPath = path.join(cacheDir, `helpall_${Date.now()}.jpg`);
+    const imgPath = path.join(cacheDir, `vip_help_${Date.now()}.jpg`);
 
     try {
-        const res = await axios.get(selectedBg, { responseType: "arraybuffer" });
-        fs.writeFileSync(imgPath, Buffer.from(res.data, "binary"));
+        const res = await axios.get(selectedImg, { responseType: "arraybuffer" });
+        await fs.writeFile(imgPath, Buffer.from(res.data));
 
         return api.sendMessage({ 
             body: helpMsg, 
@@ -76,4 +85,4 @@ module.exports.run = async function ({ api, event }) {
         return api.sendMessage(helpMsg, threadID, messageID);
     }
 };
- 
+      
