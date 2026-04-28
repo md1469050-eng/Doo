@@ -1,23 +1,34 @@
 module.exports.config = {
   name: "goiadmin",
-  version: "3.2.0",
+  version: "3.5.0",
   hasPermssion: 0,
   credits: "Belal x Gemini",
-  description: "অ্যাডমিন মেনশনে চাঁদের পাহাড় স্টাইলে ৩০০+ ইউনিক রিপ্লাই",
+  description: "শুধুমাত্র চাঁদের পাহাড় বা নির্দিষ্ট আইডি মেনশনে ফানি রিপ্লাই",
   commandCategory: "System",
   usages: "@Admin",
-  cooldowns: 1
+  cooldowns: 2
 };
 
-module.exports.handleEvent = function({ api, event }) {
-  const adminIDs = ["100056725134303", "61577502464880"].map(String);
+module.exports.handleEvent = async function({ api, event, Users }) {
+  const { threadID, messageID, senderID, body, mentions } = event;
   
-  if (adminIDs.includes(String(event.senderID))) return;
+  // আপনার নির্দিষ্ট আইডি (চাঁদের পাহাড়)
+  const myAdminID = "61577502464880"; 
+  const myName = "চাঁদের পাহাড়";
 
-  const mentionedIDs = event.mentions ? Object.keys(event.mentions).map(String) : [];
-  const isMentioningAdmin = adminIDs.some(id => mentionedIDs.includes(id));
+  // ১. যদি মেসেজ না থাকে অথবা মেসেজ দাতা নিজেই আপনি হন, তবে বট চুপ থাকবে
+  if (!body || senderID == myAdminID) return;
 
-  if (isMentioningAdmin) {
+  // ২. বটের নিজের মেসেজ ইগনোর করা
+  if (senderID == api.getCurrentUserID()) return;
+
+  // ৩. চেক করা হচ্ছে আপনাকে মেনশন করা হয়েছে কি না অথবা আপনার নাম লিখা হয়েছে কি না
+  const isMentionedMe = mentions && Object.keys(mentions).includes(myAdminID);
+  const isNamedMe = body.toLowerCase().includes(myName.toLowerCase());
+
+  // শুধুমাত্র মেনশন বা নাম ধরে ডাকলে লজিক কাজ করবে (সাধারণ রিপ্লাইয়ে কাজ করবে না)
+  if (isMentionedMe || isNamedMe) {
+    
     const replies = [
       "অহেতুক ডাকাডাকি করিস না, চাঁদের পাহাড়ের বসের সময়ের অনেক দাম! ⏳",
       "যাকে ডাকছিস, উনি তোর মতো আবালদের রিপ্লাই দেওয়ার জন্য বসে নেই। 😒",
@@ -86,7 +97,7 @@ module.exports.handleEvent = function({ api, event }) {
       "তোর মেনশন দেখে চাঁদের পাহাড়ের বসের মাথার চুল খাড়া হয়ে গেছে। ⚡",
       "যাকে ডাকছিস উনি এখন বিরিয়ানির লেগ পিস খুঁজছে। 🍗",
       "তোর মেসেজ মানেই একটা ফালতু নোটিফিকেশন। 📩",
-      "উনাকে মেনশন দেওয়া মানে বটের সার্ভার জ্যাম করা। ⚙️",
+      "উনাকে মেনশন দেওয়া মানে বটের সার্ভার জ্যাম করা. ⚙️",
       "তোর কি কাজকাম নেই? সারাদিন উনার নাম জপিস কেন? 📿",
       "যাকে মেনশন দিছিস উনি এখন মেঘের দেশে ঘর বানাচ্ছে। ☁️",
       "তোর মেনশন দেখে বসের মেজাজ ১২টা বেজে গেছে। 🕛",
@@ -119,7 +130,7 @@ module.exports.handleEvent = function({ api, event }) {
       "তোর রিপ্লাই পাওয়ার চেয়ে উনি এখন একটা কৌতুক শোনা ভালো মনে করছে। 🎭",
       "উনাকে ডাকার আগে নিজের মাথা চেক কর। 🧠🚫",
       "তোর মেনশন মানেই গ্রুপের আবালদের লিস্টে তোর নাম এক নাম্বারে। 🥇",
-      "যাকে ডাকছিস উনি এখন ক্রিকেট খেলছে, আউট হলে তোকে মারবে। 🏏",
+      "যাকে ডাকছিস উনি এখন cricket খেলছে, আউট হলে তোকে মারবে। 🏏",
       "তোর মেসেজ মানেই উনার ইনবক্সে ধুলোবালি। 🧹",
       "মেনশন দেওয়া বন্ধ কর আর চাঁদের পাহাড় থেকে ঘুমা। 🛌",
       "উনার রিপ্লাই পেতে হলে আগে উনার পা ধুয়ে দে। 🦶🧼",
@@ -137,8 +148,17 @@ module.exports.handleEvent = function({ api, event }) {
     ];
 
     const randomReply = replies[Math.floor(Math.random() * replies.length)];
-    return api.sendMessage(randomReply, event.threadID, event.messageID);
+    
+    // ৫. শুধুমাত্র যে ডেকেছে তাকে মেনশন করে রিপ্লাই দিবে
+    return api.sendMessage({
+      body: randomReply,
+      mentions: [{
+        tag: await Users.getNameUser(senderID),
+        id: senderID
+      }]
+    }, threadID, messageID);
   }
 };
 
 module.exports.run = async function() {};
+      
